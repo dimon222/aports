@@ -1,0 +1,41 @@
+# Contributor: Dmitry Romanenko <dmitry@romanenko.in>
+# Maintainer: Dmitry Romanenko <dmitry@romanenko.in>
+pkgname=ocserv
+pkgver=0.12.3
+pkgrel=0
+pkgdesc="Openconnect server (ocserv) is an SSL VPN server for administrators who require elaborate user management and control."
+url="https://ocserv.gitlab.io/www/"
+arch="all"
+license="GPLv2+"
+depends="gnutls-dev libseccomp-dev lz4-dev libev-dev linux-pam-dev iptables"
+makedepends="musl-dev readline-dev libnl3-dev xz openssl gcc autoconf automake make linux-headers talloc-dev protobuf-c-dev gperf krb5-dev"
+checkdepends="openconnect"
+source="$pkgname-$pkgver.tar.gz::https://github.com/openconnect/ocserv/archive/ocserv_${pkgver//./_}.tar.gz"
+builddir="$srcdir"/${pkgname}-${pkgname}_${pkgver//./_}
+
+build() {
+	cd "$builddir"
+	chmod +x autogen.sh
+	./autogen.sh
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--localstatedir=/var
+	make -j${JOBS}
+}
+
+check() {
+	cd "$builddir"
+	sed -i tests/common.sh -e 's/\/usr\/sbin\/openconnect/\/usr\/bin\/openconnect/g'
+	make check
+}
+
+package() {
+	cd "$builddir"
+	make DESTDIR="$pkgdir" install
+}
+
+sha512sums="bb8947ca161d356a2c199f22c6c51518a54b169cd6fee6f7d5baad243af3e4848ae33a48b94eeacc6cf3cb2b1459b4040167e68bec266c302ef20d0a759f4034  ocserv-0.12.3.tar.gz"
