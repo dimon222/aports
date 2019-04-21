@@ -1,0 +1,54 @@
+# Contributor: Dmitry Romanenko <dmitry@romanenko.in>
+# Maintainer: Dmitry Romanenko <dmitry@romanenko.in>
+pkgname=py-hdfs
+_pkgname=hdfs
+pkgver=2.5.0
+pkgrel=0
+pkgdesc="execnet: rapid multi-Python deployment"
+url="https://github.com/pytest-dev/execnet"
+arch="noarch"
+license="MIT"
+depends="py-docopt py-requests py-six"
+checkdepends="pytest py-nose"
+makedepends="python2-dev python3-dev"
+subpackages="py3-$_pkgname:_py3 py2-$_pkgname:_py2"
+source="https://files.pythonhosted.org/packages/source/${_pkgname:0:1}/$_pkgname/$_pkgname-$pkgver.tar.gz"
+builddir="$srcdir"/$_pkgname-$pkgver
+
+build() {
+	cd "$builddir"
+	python2 setup.py build
+	python3 setup.py build
+}
+
+check() {
+	cd "$builddir"
+	nosetests --with-coverage --cover-package=hdfs
+	#python2 -m pytest
+	#python3 -m pytest
+}
+
+package() {
+	mkdir -p "$pkgdir"
+}
+
+_py2() {
+	replaces="$pkgname"
+	_py python2
+}
+
+_py3() {
+	_py python3
+}
+
+_py() {
+	local python="$1"
+	pkgdesc="$pkgdesc (for $python)"
+	depends="$depends $python"
+	install_if="$pkgname=$pkgver-r$pkgrel $python"
+
+	cd "$builddir"
+	$python setup.py install --prefix=/usr --root="$subpkgdir"
+}
+
+sha512sums="f65a5e47db97835fe9c3f55778556ab50fd2b6ee3225b0656e0610a6d2d6ab7602c8b7831e4e7aa1884d00e1623747810d039b2229c75c8fa776e345accdec10  hdfs-2.5.0.tar.gz"
